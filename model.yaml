@@ -1,0 +1,35 @@
+tables:
+  - name: VENDOR_PRODUCT_PRICE
+    populate:
+      - type: PK
+      - type: UI
+        name: U_VENDOR_PRODUCT_PRICE_1
+        by:
+          - VENDOR_PRODUCT_ID
+        orderby:
+          - column: START_DATE
+            order: DESC
+queries:
+  - name: getProductPrice
+    parameters:
+      - name: startDate
+        type: date
+    query: |
+          select *
+          from VENDOR_PRODUCT_PRICE
+          where START_DATE >= :startDate
+  - name: GetProductQuoteHistory
+    parameters:
+      - name: vendorId
+        type: int
+      - name: productRef
+        type: string
+    query: |
+      select q.QUOTATION_ID, q.UPDATED_DATE, qi.PRICE, qi.MOQ, qi.NARRATIVE
+      from VENDOR_PRODUCT vp, CLIENT_QUOTATION_ITEM qi, CLIENT_QUOTATION q
+      where vp.VENDOR_ID = :vendorId
+        and vp.REFERENCE = :productRef
+        and vp.VENDOR_PRODUCT_ID = qi.VENDOR_PRODUCT_ID
+        and qi.QUOTATION_ID = q.QUOTATION_ID
+
+    

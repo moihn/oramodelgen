@@ -1,0 +1,72 @@
+package {{.Package}}
+
+import "database/sql"
+
+type {{.TableStructName}} struct {
+    {{with .TableColumnList}}
+    {{range .}}
+    {{.ColumnFieldName}}  {{.ColumnGoType}}
+    {{end}}
+    {{end}}
+}
+
+func {{.TableStructName}}Insert(tx *sql.Tx) {
+
+}
+
+func {{.TableStructName}}Update(tx *sql.Tx) {
+
+}
+
+{{with .Constraints }}
+{{range .}}
+func {{.TableStructName}}GetBy{{.ConstraintMethodName}}(
+    tx *sql.Tx,
+    {{with .ConstraintColumns}}
+    {{range .}}
+    {{.ColumnVariableName}} {{.ColumnGoType}},
+    {{end}}
+    {{end}}
+) (*ClientQuotationItem, error) {
+	sqlQuery := `
+		select
+            {{with .TableColumnList}}
+            {{range .}}
+            {{.ColumnName}},
+            {{end}}
+            {{end}}
+		from {{.TableName}}
+		where 1 = 1
+            {{with .ConstraintColumns}}
+            {{range .}}
+            and {{.ColumnName}}  = :{{.ColumnVariableName}},
+            {{end}}
+            {{end}}
+	`
+	rows, err := tx.Query(sqlQuery,
+        {{with .ConstraintColumns}}
+        {{range .}}
+        sql.Named("{{.ColumnVariableName}}", {{.ColumnVariableName}}),
+        {{end}}
+        {{end}}
+	)
+	if err != nil {
+		return nil, err
+	}
+	if rows.Next() {
+		result := {{.TableStructName}}{}
+		if err := rows.Scan(
+            {{with .TableColumnList}}
+            {{range .}}
+            &result.{{.ColumnFieldName}},
+            {{end}}
+            {{end}}
+		); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+	return nil, nil
+}
+{{end}
+{{end}}
