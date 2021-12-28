@@ -16,11 +16,13 @@ func Generate(tx *sql.Tx, modelConfig config.ModelConfig, outputPackage string) 
 	dbQueryModels := query.GenerateQueryModels(tx, modelConfig.Queries)
 
 	for index, dbTableModel := range dbTableModels {
-		m[dbTableModel.Name] = codegen.GenerateTableCode(dbTableModel, modelConfig.Tables[index], outputPackage)
+		structName, code := codegen.GenerateTableCode(dbTableModel, modelConfig.Tables[index], outputPackage)
+		m[structName] = code
 	}
 
 	for index, dbQueryModel := range dbQueryModels {
-		m[dbQueryModel.Name] = codegen.GenerateQueryCode(dbQueryModel, modelConfig.Queries[index], outputPackage)
+		structName, code := codegen.GenerateQueryCode(dbQueryModel, modelConfig.Queries[index], outputPackage)
+		m[structName] = code
 	}
 
 	// return the code

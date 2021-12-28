@@ -1,6 +1,12 @@
 package {{.Package}}
 
-import "database/sql"
+import (
+    "database/sql"
+    "fmt"
+    {{- range .Imports}}
+    "{{.}}"
+    {{- end}}
+)
 
 type {{.TableStructName}} struct {
     {{- range .TableColumnList}}
@@ -52,7 +58,7 @@ func (row *{{.TableStructName}}) Insert(tx *sql.Tx) error {
                 return err
         }
         if nRows == 0 {
-                fmt.Errorf("failed to insert {{$.TableName}} row [%v]: %#v", sqlQuery, row)
+                return fmt.Errorf("failed to insert {{$.TableName}} row [%v]: %#v", sqlQuery, row)
         }
     }
     return nil
@@ -78,7 +84,7 @@ func (row *{{.TableStructName}}) Update(tx *sql.Tx) error {
         {{- range $.TableColumnList}}{{if .ColumnIsPrimaryKey}}
         sql.Named("{{.ColumnVariableName}}", row.{{.ColumnFieldName}}),{{end}}
         {{- end}}
-    ); err != nnil {
+    ); err != nil {
         return fmt.Errorf("failed to execute update query [%v]: %v", sqlQuery, err)
     } else {
         nRows, err := result.RowsAffected()

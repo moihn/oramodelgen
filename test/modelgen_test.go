@@ -37,8 +37,8 @@ func TestGenColumns(t *testing.T) {
 
 	codegenTableModel := codegen.FromDbTableModel(tableModel, tdef)
 	jenc.Encode(codegenTableModel)
-
-	os.Stdout.Write(codegen.GenerateTableCode(tableModel, tdef, "table"))
+	_, code := codegen.GenerateTableCode(tableModel, tdef, "table")
+	os.Stdout.Write(code)
 }
 
 func TestGenQuery(t *testing.T) {
@@ -65,6 +65,6 @@ func TestGenQuery(t *testing.T) {
 
 	codegenTableModel := codegen.FromDbQueryModel(queryModel, qdef)
 	jenc.Encode(codegenTableModel)
-
-	os.Stdout.Write(codegen.GenerateQueryCode(queryModel, qdef, "query"))
+	_, code := codegen.GenerateQueryCode(queryModel, qdef, "query")
+	os.Stdout.Write(code)
 }

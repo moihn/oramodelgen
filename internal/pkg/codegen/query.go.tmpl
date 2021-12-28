@@ -1,6 +1,12 @@
 package {{.Package}}
 
-import "database/sql"
+import (
+    "database/sql"
+    "fmt"
+    {{- range .Imports}}
+    "{{.}}"
+    {{- end}}
+)
 
 type {{.QueryStructName}} struct {
     {{- range .QueryColumnList}}
@@ -21,7 +27,7 @@ func {{.QueryMethodName}}(
         {{- end}}
     )
     if err != nil {
-        return nil, err
+        return nil, fmt.Errorf("failed to run query: %v [%v]", err, sqlQuery)
     }
     defer rows.Close()
     if rows.Next() {
@@ -31,7 +37,7 @@ func {{.QueryMethodName}}(
             &result.{{.ColumnFieldName}},
             {{- end}}
         ); err != nil {
-            return nil, err
+            return nil, fmt.Errorf("failed to extract query result: %v [%v]", err, sqlQuery)
         }
         return &result, nil
     }

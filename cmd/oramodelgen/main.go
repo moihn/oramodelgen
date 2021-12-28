@@ -71,10 +71,15 @@ func main() {
 	}
 	modelDef := config.LoadModelConfig(modelDefString)
 	codes := modelgen.Generate(tx, modelDef, outputPackage)
+	packageDir := path.Join(outputDir, outputPackage)
+	err = os.MkdirAll(packageDir, 0755)
+	if err != nil {
+		logrus.Fatalf("failed to create output package directory %v: %v", packageDir, err)
+	}
 	for codeName, code := range codes {
 		fileName := codeName + ".go"
-		filePath := path.Join(outputDir, outputPackage, fileName)
-		if err = os.WriteFile(filePath, code, 0); err != nil {
+		filePath := path.Join(packageDir, fileName)
+		if err = os.WriteFile(filePath, code, 0644); err != nil {
 			logrus.Fatalf("failed to write code for %v: %v", codeName, err)
 		}
 	}

@@ -46,7 +46,7 @@ func getQueryCodegen() *template.Template {
 	return queryCodegen
 }
 
-func GenerateTableCode(tableModel dbmodel.DbTableModel, tableDef config.TableDef, packageName string) []byte {
+func GenerateTableCode(tableModel dbmodel.DbTableModel, tableDef config.TableDef, packageName string) (string, []byte) {
 	codegenModel := FromDbTableModel(tableModel, tableDef)
 	codegenModel.Package = packageName
 	tableCodegen := getTableCodegen()
@@ -55,10 +55,10 @@ func GenerateTableCode(tableModel dbmodel.DbTableModel, tableDef config.TableDef
 	if err != nil {
 		logrus.Fatalf("failed to build code for table %v: %v", tableModel.Name, err)
 	}
-	return buf.Bytes()
+	return codegenModel.TableStructName, buf.Bytes()
 }
 
-func GenerateQueryCode(queryModel dbmodel.DbQueryModel, queryDef config.QueryDef, packageName string) []byte {
+func GenerateQueryCode(queryModel dbmodel.DbQueryModel, queryDef config.QueryDef, packageName string) (string, []byte) {
 	codegenModel := FromDbQueryModel(queryModel, queryDef)
 	codegenModel.Package = packageName
 	queryCodegen := getQueryCodegen()
@@ -67,5 +67,5 @@ func GenerateQueryCode(queryModel dbmodel.DbQueryModel, queryDef config.QueryDef
 	if err != nil {
 		logrus.Fatalf("failed to build code for query %v: %v", queryModel.Name, err)
 	}
-	return buf.Bytes()
+	return codegenModel.QueryStructName, buf.Bytes()
 }
