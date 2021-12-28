@@ -1,10 +1,7 @@
 tables:
   - name: VENDOR_PRODUCT_PRICE
     populate:
-      - type: PK
-      - type: UI
-        name: U_VENDOR_PRODUCT_PRICE_1
-        by:
+      - by:
           - VENDOR_PRODUCT_ID
         orderby:
           - column: START_DATE
