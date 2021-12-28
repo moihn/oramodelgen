@@ -50,3 +50,9 @@ type DbTableModel struct {
 	Indexes     []*DbIndexModel
 	Constraints []*DbConstraintModel
 }
+
+type DbQueryModel struct {
+	Name    string
+	Columns []*DbColumnModel
+	// Parameters []*
+}

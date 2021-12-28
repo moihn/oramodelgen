@@ -92,7 +92,8 @@ func (row *{{.TableStructName}}) Update(tx *sql.Tx) error {
     return nil
 }
 
-{{range .TableIndexList}}
+{{- range .TableIndexList}}
+
 func {{$.TableStructName}}{{.IndexMethodName}}(
     tx *sql.Tx,
     {{- range .IndexColumns}}
@@ -119,6 +120,7 @@ func {{$.TableStructName}}{{.IndexMethodName}}(
     if err != nil {
         return nil, err
     }
+    defer rows.Close()
     {{- if .IndexUnique}}
     if rows.Next() {
         row := {{$.TableStructName}}{}
@@ -150,7 +152,8 @@ func {{$.TableStructName}}{{.IndexMethodName}}(
 }
 {{end}}
 
-{{range .TableConstraintList -}}
+{{- range .TableConstraintList}}
+
 func {{$.TableStructName}}{{.ConstraintMethodName}}(
     tx *sql.Tx,
     {{- range .ConstraintColumns}}
@@ -177,6 +180,59 @@ func {{$.TableStructName}}{{.ConstraintMethodName}}(
     if err != nil {
         return nil, err
     }
+    defer rows.Close()
+    if rows.Next() {
+        result := {{$.TableStructName}}{}
+        if err := rows.Scan(
+            {{- range $.TableColumnList}}
+            &result.{{.ColumnFieldName}},
+            {{- end}}
+        ); err != nil {
+            return nil, err
+        }
+        return &result, nil
+    }
+    return nil, nil
+}
+{{- end}}
+
+{{- range .TablePopulateList}}
+
+func {{$.TableStructName}}{{.PopulateMethodName}}(
+    tx *sql.Tx,
+    {{- range .PopulateByColumns}}
+    {{.ColumnVariableName}} {{.ColumnGoType}},
+    {{- end}}
+) (*{{$.TableStructName}}, error) {
+    sqlQuery := `
+        select
+            {{$count := 0}}
+            {{- range $.TableColumnList}}{{if $count}},
+            {{end}}{{.ColumnName}}{{$count = incr $count}}
+            {{- end}}
+        from {{$.TableName}}
+        where 1 = 1
+          {{- range .PopulateByColumns}}
+          and {{.ColumnName}}  = :{{.ColumnVariableName}}
+          {{- end}}
+        {{- $count = 0}}
+        {{- range .OrderByColumns}}{{if $count}},
+        {{else}}
+        order by{{end}}
+        {{- with .ByColumn}}
+          {{.ColumnName}}
+        {{- end}} {{if .Descending}}DESC{{else}}ASC{{end}}{{$count = incr $count}}
+        {{- end}}
+    `
+    rows, err := tx.Query(sqlQuery,
+        {{- range .PopulateByColumns}}
+        sql.Named("{{.ColumnVariableName}}", {{.ColumnVariableName}}),
+        {{- end}}
+    )
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
     if rows.Next() {
         result := {{$.TableStructName}}{}
         if err := rows.Scan(

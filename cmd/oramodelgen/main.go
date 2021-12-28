@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"flag"
 	"os"
+	"path"
 
 	_ "github.com/godror/godror"
 	"github.com/moihn/oramodelgen/internal/pkg/config"
@@ -22,11 +23,12 @@ func LogInit(logLevelName string) {
 }
 
 func main() {
-	var configFile, dbConnString, logLevelName, modelFile, outputPackage string
+	var configFile, dbConnString, logLevelName, modelFile, outputPackage, outputDir string
 	var printVersion bool
 	flag.StringVar(&configFile, "config", "", "Configuration YAML file")
 	flag.StringVar(&dbConnString, "dbConnectString", "", "Oracle database connection string.")
 	flag.StringVar(&modelFile, "model", "m", "Model YAML file")
+	flag.StringVar(&outputDir, "outputPackage", "P", "Output package code under given directory")
 	flag.StringVar(&outputPackage, "outputPackage", "P", "Output code under given package")
 	flag.StringVar(&logLevelName, "log-level", "warn", "Log level")
 	flag.BoolVar(&printVersion, "version", false, "Show version of the executable")
@@ -68,6 +70,12 @@ func main() {
 		logrus.Fatalf("failed to read file %v: %v", modelFile, err)
 	}
 	modelDef := config.LoadModelConfig(modelDefString)
-	modelgen.Generate(tx, modelDef)
-
+	codes := modelgen.Generate(tx, modelDef, outputPackage)
+	for codeName, code := range codes {
+		fileName := codeName + ".go"
+		filePath := path.Join(outputDir, outputPackage, fileName)
+		if err = os.WriteFile(filePath, code, 0); err != nil {
+			logrus.Fatalf("failed to write code for %v: %v", codeName, err)
+		}
+	}
 }

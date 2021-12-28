@@ -75,7 +75,7 @@ func resolveSynonym(tx *sql.Tx, table *config.TableDef) {
 	logrus.Fatalf("Name %v is not found as synonym name or table name for user %v", table.Name, dbUser)
 }
 
-func resolveDataType(name string, dataScale *int) dbmodel.DataType {
+func ResolveDataType(name string, dataScale *int) dbmodel.DataType {
 	switch {
 	case name == "BLOB":
 		return dbmodel.Blob_t
@@ -152,7 +152,7 @@ func getColumns(db *sql.Tx, table config.TableDef) []*dbmodel.DbColumnModel {
 		}
 		columns = append(columns, &dbmodel.DbColumnModel{
 			Name:     strings.ToUpper(colName),
-			Type:     resolveDataType(dataType, dataScale),
+			Type:     ResolveDataType(dataType, dataScale),
 			Nullable: resolveBoolValue(nullable),
 			// Length:        dataLength,
 			// Scale:         dataScale,
@@ -374,9 +374,12 @@ func GenerateTableModel(tx *sql.Tx, table config.TableDef) dbmodel.DbTableModel 
 	return tableModel
 }
 
-func GenerateTableModels(tx *sql.Tx, tables []config.TableDef) {
+func GenerateTableModels(tx *sql.Tx, tables []config.TableDef) []dbmodel.DbTableModel {
+	tableModels := []dbmodel.DbTableModel{}
 	for index := range tables {
 		table := tables[index]
-		GenerateTableModel(tx, table)
+		tableModel := GenerateTableModel(tx, table)
+		tableModels = append(tableModels, tableModel)
 	}
+	return tableModels
 }

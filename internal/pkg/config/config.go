@@ -19,13 +19,13 @@ func LoadConfig(configStr []byte) Config {
 }
 
 type OrderBy struct {
-	Column string `yaml:"column"`
-	Order  string `yaml:"order"`
+	Column     string `yaml:"column"`
+	Descending bool   `yaml:"descending"`
 }
 
 type TablePopulateDef struct {
-	Type    string    `yaml:"type"`
-	Name    string    `yaml:"name"`
+	// Type    string    `yaml:"type"`
+	// Name    string    `yaml:"name"`
 	By      []string  `yaml:"by"`
 	Orderby []OrderBy `yaml:"orderby"`
 }

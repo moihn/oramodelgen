@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"text/template"
 
+	"github.com/moihn/oramodelgen/internal/pkg/config"
 	"github.com/moihn/oramodelgen/internal/pkg/dbmodel"
 	"github.com/sirupsen/logrus"
 )
@@ -13,10 +14,14 @@ import (
 var tableTemplate string
 var tableCodegen *template.Template
 
+//go:embed query.go.tmpl
+var queryTemplate string
+var queryCodegen *template.Template
+
 var fns = template.FuncMap{
-    "incr": func(x int) int {
-        return x+1
-    },
+	"incr": func(x int) int {
+		return x + 1
+	},
 }
 
 func getTableCodegen() *template.Template {
@@ -30,14 +35,37 @@ func getTableCodegen() *template.Template {
 	return tableCodegen
 }
 
-func Generate(tableModel dbmodel.DbTableModel, packageName string) []byte {
-	codegenModel := FromDbModel(tableModel)
+func getQueryCodegen() *template.Template {
+	if queryCodegen == nil {
+		var err error
+		queryCodegen, err = template.New("query.go.tmpl").Funcs(fns).Parse(queryTemplate)
+		if err != nil {
+			logrus.Fatalf("failed to compile query template: %v", err)
+		}
+	}
+	return queryCodegen
+}
+
+func GenerateTableCode(tableModel dbmodel.DbTableModel, tableDef config.TableDef, packageName string) []byte {
+	codegenModel := FromDbTableModel(tableModel, tableDef)
 	codegenModel.Package = packageName
 	tableCodegen := getTableCodegen()
 	var buf bytes.Buffer
 	err := tableCodegen.Execute(&buf, codegenModel)
 	if err != nil {
 		logrus.Fatalf("failed to build code for table %v: %v", tableModel.Name, err)
+	}
+	return buf.Bytes()
+}
+
+func GenerateQueryCode(queryModel dbmodel.DbQueryModel, queryDef config.QueryDef, packageName string) []byte {
+	codegenModel := FromDbQueryModel(queryModel, queryDef)
+	codegenModel.Package = packageName
+	queryCodegen := getQueryCodegen()
+	var buf bytes.Buffer
+	err := queryCodegen.Execute(&buf, codegenModel)
+	if err != nil {
+		logrus.Fatalf("failed to build code for query %v: %v", queryModel.Name, err)
 	}
 	return buf.Bytes()
 }

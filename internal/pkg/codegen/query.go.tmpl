@@ -1,0 +1,39 @@
+package {{.Package}}
+
+import "database/sql"
+
+type {{.QueryStructName}} struct {
+    {{- range .QueryColumnList}}
+    {{.ColumnFieldName}}  {{.ColumnGoType}}
+    {{- end}}
+}
+
+func {{.QueryMethodName}}(
+    tx *sql.Tx,
+    {{- range .QueryParameterList}}
+    {{.VariableName}} {{.GoType}},
+    {{- end}}
+) (*{{$.QueryStructName}}, error) {
+    sqlQuery := `{{.QueryString}}`
+    rows, err := tx.Query(sqlQuery,
+        {{- range .QueryParameterList}}
+        sql.Named("{{.VariableName}}", {{.VariableName}}),
+        {{- end}}
+    )
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+    if rows.Next() {
+        result := {{$.QueryStructName}}{}
+        if err := rows.Scan(
+            {{- range $.QueryColumnList}}
+            &result.{{.ColumnFieldName}},
+            {{- end}}
+        ); err != nil {
+            return nil, err
+        }
+        return &result, nil
+    }
+    return nil, nil
+}
