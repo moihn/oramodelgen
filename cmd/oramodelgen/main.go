@@ -28,7 +28,7 @@ func main() {
 	flag.StringVar(&configFile, "config", "", "Configuration YAML file")
 	flag.StringVar(&dbConnString, "dbConnectString", "", "Oracle database connection string.")
 	flag.StringVar(&modelFile, "model", "m", "Model YAML file")
-	flag.StringVar(&outputDir, "outputPackage", "P", "Output package code under given directory")
+	flag.StringVar(&outputDir, "outdir", "P", "Output package code under given directory")
 	flag.StringVar(&outputPackage, "outputPackage", "P", "Output code under given package")
 	flag.StringVar(&logLevelName, "log-level", "warn", "Log level")
 	flag.BoolVar(&printVersion, "version", false, "Show version of the executable")
