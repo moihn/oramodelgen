@@ -355,6 +355,7 @@ func getIndexes(tx *sql.Tx, table config.TableDef, columns map[string]*dbmodel.D
 }
 
 func GenerateTableModel(tx *sql.Tx, table config.TableDef) dbmodel.DbTableModel {
+	table.Name = strings.ToUpper(table.Name) // fix table name to upper case
 	resolveSynonym(tx, &table)
 	tableModel := dbmodel.DbTableModel{
 		Name: strings.ToUpper(table.Name),

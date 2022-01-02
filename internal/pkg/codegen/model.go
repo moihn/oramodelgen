@@ -53,7 +53,8 @@ type CodegenTableModel struct {
 	Imports             []string
 	TableName           string
 	TableLowerName      string
-	TableStructName     string
+	TableCamelName      string
+	TableRowStructName  string
 	TableObjectName     string
 	TableColumnList     []*CodegenColumnModel
 	TableIndexList      []*CodegenIndexModel
@@ -71,7 +72,7 @@ type CodegenQueryModel struct {
 	Imports            []string
 	QueryName          string
 	QueryMethodName    string
-	QueryStructName    string
+	QueryRowStructName string
 	QueryObjectName    string
 	QueryString        string
 	QueryColumnList    []*CodegenColumnModel
@@ -85,6 +86,8 @@ func resolveGoDataType(column *dbmodel.DbColumnModel) string {
 	case column.Type == dbmodel.Date_t:
 		return "time.Time"
 	case column.Type == dbmodel.Long_t:
+		return "int64"
+	case column.Type == dbmodel.Number_t:
 		return "int64"
 	case column.Type == dbmodel.Float_t:
 		return "float32"
@@ -113,7 +116,8 @@ func FromDbTableModel(tableModel dbmodel.DbTableModel, tableDef config.TableDef)
 		TableName:      tableModel.Name,
 		TableLowerName: strings.ToLower(tableModel.Name),
 	}
-	codegenModel.TableStructName = strcase.ToCamel(codegenModel.TableLowerName) + "Row"
+	codegenModel.TableCamelName = strcase.ToCamel(codegenModel.TableLowerName)
+	codegenModel.TableRowStructName = strcase.ToCamel(codegenModel.TableLowerName) + "Row"
 	codegenModel.TableObjectName = strcase.ToLowerCamel(codegenModel.TableLowerName)
 	columnMap := map[string]*CodegenColumnModel{}
 	importPackages := map[string]bool{}
@@ -232,11 +236,11 @@ func FromDbTableModel(tableModel dbmodel.DbTableModel, tableDef config.TableDef)
 
 func FromDbQueryModel(queryModel dbmodel.DbQueryModel, queryDef config.QueryDef) CodegenQueryModel {
 	codegenModel := CodegenQueryModel{
-		QueryName:       queryDef.Name,
-		QueryMethodName: strcase.ToCamel(queryDef.Name),
-		QueryStructName: strcase.ToCamel(queryDef.Name) + "Row",
-		QueryObjectName: strcase.ToLowerCamel(queryDef.Name),
-		QueryString:     queryDef.Query,
+		QueryName:          queryDef.Name,
+		QueryMethodName:    strcase.ToCamel(queryDef.Name),
+		QueryRowStructName: strcase.ToCamel(queryDef.Name) + "Row",
+		QueryObjectName:    strcase.ToLowerCamel(queryDef.Name),
+		QueryString:        queryDef.Query,
 	}
 
 	importPackages := map[string]bool{}

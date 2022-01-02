@@ -8,13 +8,13 @@ import (
     {{- end}}
 )
 
-type {{.TableStructName}} struct {
+type {{.TableRowStructName}} struct {
     {{- range .TableColumnList}}
     {{.ColumnFieldName}}  {{.ColumnGoType}}
     {{- end}}
 }
 
-func (row *{{.TableStructName}}) Insert(tx *sql.Tx) error {
+func (row *{{.TableRowStructName}}) Insert(tx *sql.Tx) error {
     sqlQuery := `
         insert into {{$.TableName}}
         (
@@ -64,7 +64,7 @@ func (row *{{.TableStructName}}) Insert(tx *sql.Tx) error {
     return nil
 }
 
-func (row *{{.TableStructName}}) Update(tx *sql.Tx) error {
+func (row *{{.TableRowStructName}}) Update(tx *sql.Tx) error {
     sqlQuery := `
         update {{$.TableName}}
         set
@@ -100,12 +100,12 @@ func (row *{{.TableStructName}}) Update(tx *sql.Tx) error {
 
 {{- range .TableIndexList}}
 
-func {{$.TableStructName}}{{.IndexMethodName}}(
+func {{$.TableCamelName}}{{.IndexMethodName}}(
     tx *sql.Tx,
     {{- range .IndexColumns}}
     {{.ColumnVariableName}} {{.ColumnGoType}},
     {{- end}}
-) ({{if .IndexUnique}}{{else}}[]{{end}}*{{$.TableStructName}}, error) {
+) ({{if .IndexUnique}}{{else}}[]{{end}}*{{$.TableRowStructName}}, error) {
     sqlQuery := `
         select
             {{$count := 0}}
@@ -129,7 +129,7 @@ func {{$.TableStructName}}{{.IndexMethodName}}(
     defer rows.Close()
     {{- if .IndexUnique}}
     if rows.Next() {
-        row := {{$.TableStructName}}{}
+        row := {{$.TableRowStructName}}{}
         if err := rows.Scan(
             {{- range $.TableColumnList}}
             &row.{{.ColumnFieldName}},
@@ -141,9 +141,9 @@ func {{$.TableStructName}}{{.IndexMethodName}}(
     }
     return nil, nil
     {{- else}}
-    results := []*{{$.TableStructName}}{}
+    results := []*{{$.TableRowStructName}}{}
     for rows.Next() {
-        row := {{$.TableStructName}}{}
+        row := {{$.TableRowStructName}}{}
         if err := rows.Scan(
             {{- range $.TableColumnList}}
             &row.{{.ColumnFieldName}},
@@ -160,12 +160,12 @@ func {{$.TableStructName}}{{.IndexMethodName}}(
 
 {{- range .TableConstraintList}}
 
-func {{$.TableStructName}}{{.ConstraintMethodName}}(
+func {{$.TableCamelName}}{{.ConstraintMethodName}}(
     tx *sql.Tx,
     {{- range .ConstraintColumns}}
     {{.ColumnVariableName}} {{.ColumnGoType}},
     {{- end}}
-) (*{{$.TableStructName}}, error) {
+) ([]*{{$.TableRowStructName}}, error) {
     sqlQuery := `
         select
             {{$count := 0}}
@@ -187,29 +187,30 @@ func {{$.TableStructName}}{{.ConstraintMethodName}}(
         return nil, err
     }
     defer rows.Close()
-    if rows.Next() {
-        result := {{$.TableStructName}}{}
+    result := []*{{$.TableRowStructName}}{}
+    for rows.Next() {
+        row := {{$.TableRowStructName}}{}
         if err := rows.Scan(
             {{- range $.TableColumnList}}
-            &result.{{.ColumnFieldName}},
+            &row.{{.ColumnFieldName}},
             {{- end}}
         ); err != nil {
             return nil, err
         }
-        return &result, nil
+        result = append(result, &row)
     }
-    return nil, nil
+    return result, nil
 }
 {{- end}}
 
 {{- range .TablePopulateList}}
 
-func {{$.TableStructName}}{{.PopulateMethodName}}(
+func {{$.TableCamelName}}{{.PopulateMethodName}}(
     tx *sql.Tx,
     {{- range .PopulateByColumns}}
     {{.ColumnVariableName}} {{.ColumnGoType}},
     {{- end}}
-) (*{{$.TableStructName}}, error) {
+) ([]*{{$.TableRowStructName}}, error) {
     sqlQuery := `
         select
             {{$count := 0}}
@@ -239,17 +240,18 @@ func {{$.TableStructName}}{{.PopulateMethodName}}(
         return nil, err
     }
     defer rows.Close()
-    if rows.Next() {
-        result := {{$.TableStructName}}{}
+    result := []*{{$.TableRowStructName}}{}
+    for rows.Next() {
+        row := {{$.TableRowStructName}}{}
         if err := rows.Scan(
             {{- range $.TableColumnList}}
-            &result.{{.ColumnFieldName}},
+            &row.{{.ColumnFieldName}},
             {{- end}}
         ); err != nil {
             return nil, err
         }
-        return &result, nil
+        result = append(result, &row)
     }
-    return nil, nil
+    return result, nil
 }
 {{- end}}

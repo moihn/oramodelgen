@@ -55,7 +55,7 @@ func GenerateTableCode(tableModel dbmodel.DbTableModel, tableDef config.TableDef
 	if err != nil {
 		logrus.Fatalf("failed to build code for table %v: %v", tableModel.Name, err)
 	}
-	return codegenModel.TableStructName, buf.Bytes()
+	return codegenModel.TableCamelName, buf.Bytes()
 }
 
 func GenerateQueryCode(queryModel dbmodel.DbQueryModel, queryDef config.QueryDef, packageName string) (string, []byte) {
@@ -67,5 +67,5 @@ func GenerateQueryCode(queryModel dbmodel.DbQueryModel, queryDef config.QueryDef
 	if err != nil {
 		logrus.Fatalf("failed to build code for query %v: %v", queryModel.Name, err)
 	}
-	return codegenModel.QueryStructName, buf.Bytes()
+	return codegenModel.QueryMethodName + "Query", buf.Bytes()
 }

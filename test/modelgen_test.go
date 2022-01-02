@@ -15,20 +15,21 @@ func TestGenColumns(t *testing.T) {
 	tx := GetDbTransaction()
 	defer tx.Rollback()
 	tdef := config.TableDef{
-		Name: "TEST_TABLE_A",
-		Populate: []config.TablePopulateDef{
-			{
-				By: []string{
-					"Name",
-				},
-				Orderby: []config.OrderBy{
-					{
-						Column:     "Id",
-						Descending: false,
+		Name: "CLIENT_PRODUCT",
+		/*
+			Populate: []config.TablePopulateDef{
+				{
+					By: []string{
+						"Name",
+					},
+					Orderby: []config.OrderBy{
+						{
+							Column:     "Id",
+							Descending: false,
+						},
 					},
 				},
-			},
-		},
+			}, */
 	}
 	tableModel := table.GenerateTableModel(tx, tdef)
 	jenc := json.NewEncoder(os.Stdout)

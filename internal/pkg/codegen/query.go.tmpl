@@ -8,7 +8,7 @@ import (
     {{- end}}
 )
 
-type {{.QueryStructName}} struct {
+type {{.QueryRowStructName}} struct {
     {{- range .QueryColumnList}}
     {{.ColumnFieldName}}  {{.ColumnGoType}}
     {{- end}}
@@ -19,7 +19,7 @@ func {{.QueryMethodName}}(
     {{- range .QueryParameterList}}
     {{.VariableName}} {{.GoType}},
     {{- end}}
-) (*{{$.QueryStructName}}, error) {
+) ([]*{{$.QueryRowStructName}}, error) {
     sqlQuery := `{{.QueryString}}`
     rows, err := tx.Query(sqlQuery,
         {{- range .QueryParameterList}}
@@ -30,16 +30,17 @@ func {{.QueryMethodName}}(
         return nil, fmt.Errorf("failed to run query: %v [%v]", err, sqlQuery)
     }
     defer rows.Close()
+    result := []*{{$.QueryRowStructName}}{}
     if rows.Next() {
-        result := {{$.QueryStructName}}{}
+        row := {{$.QueryRowStructName}}{}
         if err := rows.Scan(
             {{- range $.QueryColumnList}}
-            &result.{{.ColumnFieldName}},
+            &row.{{.ColumnFieldName}},
             {{- end}}
         ); err != nil {
             return nil, fmt.Errorf("failed to extract query result: %v [%v]", err, sqlQuery)
         }
-        return &result, nil
+        result = append(result, &row)
     }
-    return nil, nil
+    return result, nil
 }
