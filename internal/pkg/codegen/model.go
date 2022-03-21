@@ -137,7 +137,11 @@ func FromDbTableModel(tableModel dbmodel.DbTableModel, tableDef config.TableDef)
 		}
 		typeTokens := strings.Split(codegenCol.ColumnGoType, ".")
 		if len(typeTokens) > 1 {
-			importPackages[typeTokens[0]] = true
+			packageName := typeTokens[0]
+			if packageName[0:1] == "*" {
+				packageName = packageName[1:]
+			}
+			importPackages[packageName] = true
 		}
 		codegenCol.ColumnFieldName = strcase.ToCamel(codegenCol.ColumnLowerName)
 		codegenCol.ColumnVariableName = strcase.ToLowerCamel(codegenCol.ColumnLowerName)
@@ -262,7 +266,11 @@ func FromDbQueryModel(queryModel dbmodel.DbQueryModel, queryDef config.QueryDef)
 		}
 		typeTokens := strings.Split(codegenCol.ColumnGoType, ".")
 		if len(typeTokens) > 1 {
-			importPackages[typeTokens[0]] = true
+			packageName := typeTokens[0]
+			if packageName[0:1] == "*" {
+				packageName = packageName[1:]
+			}
+			importPackages[packageName] = true
 		}
 		codegenModel.QueryColumnList = append(codegenModel.QueryColumnList, &codegenCol)
 	}
