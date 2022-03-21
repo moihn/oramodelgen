@@ -80,20 +80,25 @@ type CodegenQueryModel struct {
 }
 
 func resolveGoDataType(column *dbmodel.DbColumnModel) string {
+	var typeName string
 	switch {
 	case column.Type == dbmodel.Blob_t || column.Type == dbmodel.Char_t || column.Type == dbmodel.Clob_t || column.Type == dbmodel.Varchar_t:
-		return "string"
+		typeName = "string"
 	case column.Type == dbmodel.Date_t:
-		return "time.Time"
+		typeName = "time.Time"
 	case column.Type == dbmodel.Long_t:
-		return "int64"
+		typeName = "int64"
 	case column.Type == dbmodel.Number_t:
-		return "int64"
+		typeName = "int64"
 	case column.Type == dbmodel.Float_t:
-		return "float32"
+		typeName = "float32"
 	default:
-		return "string"
+		typeName = "string"
 	}
+	if column.Nullable {
+		typeName = "*" + typeName
+	}
+	return typeName
 }
 
 func resolveGoDataTypeFromDbDataType(datatype string) string {
